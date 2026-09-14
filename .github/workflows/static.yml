@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modal Detectives — Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F4F1EA;
+    --card:#FFFFFF;
+    --navy:#22314B;
+    --navy-soft:#5B6B8C;
+    --teal:#2F6690;
+    --teal-soft:#E7F1F8;
+    --coral:#EF5B4E;
+    --coral-soft:#FDEAE7;
+    --gold:#C98A1E;
+    --gold-soft:#FBF0DB;
+    --good:#3FA66B;
+    --good-soft:#E4F6EC;
+    --bad:#D9463C;
+    --bad-soft:#FBE7E5;
+    --radius:20px;
+    --shadow: 0 10px 24px rgba(34,49,75,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% 12%, var(--gold-soft) 0, transparent 40%),
+      radial-gradient(circle at 92% 85%, var(--teal-soft) 0, transparent 42%),
+      var(--cream);
+    min-height:100vh;
+    font-family:'Nunito', sans-serif;
+    color:var(--navy);
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:980px; margin:0 auto;}
+
+  .masthead{
+    display:flex; align-items:center; gap:16px;
+    background:var(--navy);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:20px 26px;
+    box-shadow:var(--shadow);
+    margin-bottom:22px;
+  }
+  .masthead .glass{ font-size:34px; flex:0 0 auto; filter:drop-shadow(0 3px 0 rgba(0,0,0,0.15)); }
+  .masthead h1{ font-family:'Baloo 2', sans-serif; font-size:clamp(22px,3.4vw,30px); margin:0 0 2px; letter-spacing:0.3px; }
+  .masthead p{ margin:0; color:#D7CBB0; font-weight:700; font-size:14px; }
+
+  .legend{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:24px; }
+  @media (max-width:640px){ .legend{ grid-template-columns:repeat(2, 1fr); } }
+  .legend .chip{
+    display:flex; flex-direction:column; gap:2px;
+    border-radius:14px; padding:10px 14px;
+    box-shadow:var(--shadow);
+    background:var(--card);
+    border-left:6px solid var(--teal);
+  }
+  .legend .chip .q{ font-family:'Baloo 2', sans-serif; font-size:14px; color:var(--navy); }
+  .legend .chip .w{ font-size:12px; color:var(--navy-soft); font-weight:700; }
+
+  .board-title{ font-family:'Baloo 2', sans-serif; font-size:19px; margin:0 0 14px 4px; color:var(--navy-soft); }
+  .grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; }
+  @media (max-width:720px){ .grid{grid-template-columns:repeat(3, 1fr);} }
+  @media (max-width:420px){ .grid{grid-template-columns:repeat(2, 1fr);} }
+
+  .tile{
+    position:relative; aspect-ratio:1/1; border:none; border-radius:16px;
+    background:var(--card); box-shadow:var(--shadow); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif; font-size:26px; color:var(--navy);
+    border-top:6px solid var(--gold);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .tile:hover{ transform:translateY(-3px); box-shadow:0 14px 26px rgba(34,49,75,0.16); }
+  .tile:active{ transform:translateY(0); }
+  .tile .num-label{
+    position:absolute; top:6px; left:0; right:0; text-align:center;
+    font-family:'Nunito', sans-serif; font-weight:800; font-size:9px;
+    letter-spacing:1px; color:var(--navy-soft); text-transform:uppercase;
+  }
+  .tile .badge{
+    position:absolute; top:-8px; right:-8px; width:26px; height:26px;
+    background:var(--good); color:#fff; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+    box-shadow:0 3px 6px rgba(0,0,0,0.2); border:2px solid var(--cream);
+  }
+
+  .qview{ display:none; }
+  .qview.active{ display:block; }
+  #dashboard.hidden{ display:none; }
+
+  .case-card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px 28px 28px; margin-bottom:18px; }
+  .case-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .case-num{ font-family:'Baloo 2', sans-serif; color:var(--gold); background:var(--navy); padding:6px 16px; border-radius:999px; font-size:15px; }
+  .case-type{ font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--navy-soft); }
+  .prompt{ font-family:'Baloo 2', sans-serif; font-size:clamp(18px,2.6vw,22px); line-height:1.4; margin:6px 0 22px; color:var(--navy); }
+
+  .options{ display:grid; gap:12px; }
+  .opt{
+    text-align:left; border:2.5px solid #E7E2D6; background:#FFFDF8; border-radius:14px;
+    padding:14px 18px; font-family:'Nunito', sans-serif; font-weight:700; font-size:15.5px;
+    color:var(--navy); cursor:pointer; transition:border-color .12s ease, background .12s ease, transform .08s ease;
+  }
+  .opt:hover{ transform:translateX(2px); border-color:var(--gold); }
+  .opt.correct{ background:var(--good-soft); border-color:var(--good); color:#245C3B; }
+  .opt.wrong{ background:var(--bad-soft); border-color:var(--bad); color:#7A241E; }
+  .opt[disabled]{ cursor:default; transform:none; }
+
+  .feedback{ margin-top:16px; padding:14px 16px; border-radius:12px; font-weight:700; font-size:14.5px; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ background:var(--good-soft); color:#245C3B; }
+  .feedback.bad{ background:var(--bad-soft); color:#7A241E; }
+  .feedback .explain{ font-weight:600; display:block; margin-top:4px; color:var(--navy-soft); }
+
+  .case-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:22px; }
+  .btn{ font-family:'Baloo 2', sans-serif; font-size:14.5px; border:none; border-radius:12px; padding:12px 20px; cursor:pointer; font-weight:700; display:inline-flex; align-items:center; gap:8px; }
+  .btn-ghost{ background:#fff; color:var(--navy); border:2px solid #E7E2D6; }
+  .btn-ghost:hover{ border-color:var(--gold); }
+  .btn-primary{ background:var(--navy); color:#fff; }
+  .btn-primary:hover{ background:#1a2438; }
+
+  .nav-row{ display:flex; justify-content:space-between; gap:12px; margin-top:6px; }
+
+  footer{ text-align:center; color:var(--navy-soft); font-size:12.5px; margin-top:30px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="glass">🕵️</div>
+    <div>
+      <h1>Modal Detectives</h1>
+      <p>Crack 15 case files — which modal, Can, May, Must, or Ought, is at work?</p>
+    </div>
+  </div>
+
+  <div id="dashboard">
+    <div class="legend">
+      <div class="chip"><span class="q">Can</span><span class="w">Ability</span></div>
+      <div class="chip"><span class="q">May</span><span class="w">Possibility</span></div>
+      <div class="chip"><span class="q">Must</span><span class="w">Necessity</span></div>
+      <div class="chip"><span class="q">Ought</span><span class="w">Obligation</span></div>
+    </div>
+    <h2 class="board-title">Choose a case file to solve:</h2>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="qview" id="qview">
+    <div class="case-card">
+      <div class="case-head">
+        <span class="case-num" id="caseNum">Case File #1</span>
+        <span class="case-type" id="caseType">Multiple Choice</span>
+      </div>
+      <p class="prompt" id="prompt"></p>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="case-actions">
+        <button class="btn btn-ghost" id="revealBtn">👀 View correct answer</button>
+        <button class="btn btn-primary" id="dashBtn">🏠 Back to dashboard</button>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="prevBtn">← Previous case</button>
+      <button class="btn btn-ghost" id="nextBtn">Next case →</button>
+    </div>
+  </div>
+
+  <footer>Grade 4 · Grammar Concepts — Modals (Can, May, Must, Ought)</footer>
+</div>
+
+<script>
+const questions = [
+  {
+    type:'mcq',
+    prompt:'Which modal shows ABILITY?',
+    options:['May','Can','Must','Ought'],
+    correct:1,
+    explain:'"Can" shows what you are able to do, e.g. "I can read easily."'
+  },
+  {
+    type:'mcq',
+    prompt:'"You ____ wear a helmet while riding a bike." Which modal fits, and what does it show?',
+    options:['Can — ability','May — possibility','Must — necessity','Ought — obligation'],
+    correct:2,
+    explain:'"Must" is used for something you have to do — a necessity.'
+  },
+  {
+    type:'mcq',
+    prompt:'Which sentence uses a modal for OBLIGATION?',
+    options:['I can sing.','It may snow.','You ought to help others.','I must sleep early.'],
+    correct:2,
+    explain:'"Ought to" shows what is the right thing to do — an obligation.'
+  },
+  {
+    type:'mcq',
+    prompt:'"She ____ visit us tomorrow." (she hasn\u2019t decided yet) — which modal fits?',
+    options:['Can','May','Must','Ought'],
+    correct:1,
+    explain:'"May" shows a possibility — something that might happen.'
+  },
+  {
+    type:'mcq',
+    prompt:'Which modal is used for something you HAVE TO do?',
+    options:['Can','May','Must','Ought'],
+    correct:2,
+    explain:'"Must" shows necessity, e.g. "I must drink enough water."'
+  },
+  {
+    type:'mcq',
+    prompt:'Fill in the blank: Birds ____ fly.',
+    options:['Can','May','Must','Ought'],
+    correct:0,
+    explain:'"Can" shows ability — what birds are able to do.'
+  },
+  {
+    type:'mcq',
+    prompt:'Fill in the blank: We ____ finish our homework before playing.',
+    options:['Can','May','Must','Ought'],
+    correct:2,
+    explain:'"Must" shows necessity — something that has to be done.'
+  },
+  {
+    type:'mcq',
+    prompt:'Fill in the blank: It ____ rain later today.',
+    options:['Can','May','Must','Ought'],
+    correct:1,
+    explain:'"May" shows possibility — something that might happen.'
+  },
+  {
+    type:'mcq',
+    prompt:'Fill in the blank: Children ____ obey their elders.',
+    options:['Can','May','Must','Ought'],
+    correct:3,
+    explain:'"Ought" shows obligation — what is the right thing to do.'
+  },
+  {
+    type:'tf',
+    prompt:'True or False: "Can" is used to show necessity.',
+    options:['True','False'],
+    correct:1,
+    explain:'False. "Can" shows ability, not necessity. "Must" is used for necessity.'
+  },
+  {
+    type:'tf',
+    prompt:'True or False: "Must" shows something you are required to do.',
+    options:['True','False'],
+    correct:0,
+    explain:'True. "Must" is used for necessity — something required.'
+  },
+  {
+    type:'tf',
+    prompt:'True or False: "Ought" is used to show ability.',
+    options:['True','False'],
+    correct:1,
+    explain:'False. "Ought" shows obligation, not ability. "Can" is used for ability.'
+  },
+  {
+    type:'mcq',
+    prompt:'Match the modal: "I ____ swim across the pool."',
+    options:['Can','May','Must','Ought'],
+    correct:0,
+    explain:'"Can" shows ability — what you are able to do.'
+  },
+  {
+    type:'mcq',
+    prompt:'Match the modal: "You ____ speak the truth."',
+    options:['Can','May','Must','Ought'],
+    correct:3,
+    explain:'"Ought" shows obligation — the right thing to do.'
+  },
+  {
+    type:'mcq',
+    prompt:'Match the modal: "She ____ join us for the trip, she hasn\u2019t decided."',
+    options:['Can','May','Must','Ought'],
+    correct:1,
+    explain:'"May" shows possibility — something that might happen.'
+  }
+];
+
+let current = 0;
+const answered = new Array(questions.length).fill(false);
+
+const grid = document.getElementById('grid');
+const dashboard = document.getElementById('dashboard');
+const qview = document.getElementById('qview');
+const caseNum = document.getElementById('caseNum');
+const caseType = document.getElementById('caseType');
+const promptEl = document.getElementById('prompt');
+const optionsEl = document.getElementById('options');
+const feedbackEl = document.getElementById('feedback');
+
+const typeLabels = { mcq:'Multiple Choice', tf:'True or False' };
+
+function buildGrid(){
+  grid.innerHTML = '';
+  questions.forEach((q, i) => {
+    const tile = document.createElement('button');
+    tile.className = 'tile';
+    tile.innerHTML = `<span class="num-label">Case</span>${i+1}` + (answered[i] ? '<span class="badge">✓</span>' : '');
+    tile.addEventListener('click', () => openQuestion(i));
+    grid.appendChild(tile);
+  });
+}
+
+function openQuestion(i){
+  current = i;
+  const q = questions[i];
+  dashboard.classList.add('hidden');
+  qview.classList.add('active');
+
+  caseNum.textContent = `Case File #${i+1}`;
+  caseType.textContent = typeLabels[q.type];
+  promptEl.textContent = q.prompt;
+  feedbackEl.className = 'feedback';
+  feedbackEl.innerHTML = '';
+
+  optionsEl.innerHTML = '';
+  q.options.forEach((optText, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = optText;
+    btn.addEventListener('click', () => selectAnswer(idx, btn));
+    optionsEl.appendChild(btn);
+  });
+
+  document.getElementById('prevBtn').disabled = (i === 0);
+  document.getElementById('nextBtn').disabled = (i === questions.length - 1);
+}
+
+function selectAnswer(idx, btn){
+  const q = questions[current];
+  const allOpts = optionsEl.querySelectorAll('.opt');
+  allOpts.forEach(o => o.disabled = true);
+
+  if(idx === q.correct){
+    btn.classList.add('correct');
+    feedbackEl.className = 'feedback show good';
+    feedbackEl.innerHTML = `🎉 Correct! <span class="explain">${q.explain}</span>`;
+  } else {
+    btn.classList.add('wrong');
+    allOpts[q.correct].classList.add('correct');
+    feedbackEl.className = 'feedback show bad';
+    feedbackEl.innerHTML = `Not quite. <span class="explain">${q.explain}</span>`;
+  }
+  answered[current] = true;
+}
+
+function revealAnswer(){
+  const q = questions[current];
+  const allOpts = optionsEl.querySelectorAll('.opt');
+  allOpts.forEach(o => o.disabled = true);
+  allOpts[q.correct].classList.add('correct');
+  feedbackEl.className = 'feedback show good';
+  feedbackEl.innerHTML = `✅ Correct answer: <strong>${q.options[q.correct]}</strong><span class="explain">${q.explain}</span>`;
+  answered[current] = true;
+}
+
+function backToDashboard(){
+  qview.classList.remove('active');
+  dashboard.classList.remove('hidden');
+  buildGrid();
+}
+
+document.getElementById('revealBtn').addEventListener('click', revealAnswer);
+document.getElementById('dashBtn').addEventListener('click', backToDashboard);
+document.getElementById('prevBtn').addEventListener('click', () => { if(current>0) openQuestion(current-1); });
+document.getElementById('nextBtn').addEventListener('click', () => { if(current<questions.length-1) openQuestion(current+1); });
+
+buildGrid();
+</script>
+</body>
+</html>
